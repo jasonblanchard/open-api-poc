@@ -2,8 +2,10 @@
   "name": "open-api-poc",
   "version": "1.0.0",
   "main": "index.js",
+  "bin": "dist/cli/index.js",
   "scripts": {
-    "cli": "ts-node src/index.ts",
+    "cli": "ts-node cli/index.ts",
+    "build": "tsc",
     "kitchensink": "ts-node examples/kitchensink/index.ts"
   },
   "keywords": [],
