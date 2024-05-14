@@ -1,5 +1,5 @@
 import z from "zod";
-import { Method } from "../../src/expressMiddleware";
+import { Method } from "../../lib/expressMiddleware";
 
 export const HelloParams = z.object({
   name: z.coerce.string(),
