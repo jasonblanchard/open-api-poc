@@ -1,7 +1,7 @@
 import { Express, Request, Response } from "express";
 import z from "zod";
 
-export type Method = "GET" | "POST" | "PUT" | "DELETE";
+export type Method = "get" | "post" | "put" | "delete";
 
 interface Route {
   path: string;
@@ -32,15 +32,23 @@ export function expressMiddleware({
 
         const result = await route.handler(params);
 
-        const { data: responseBody, error: responseBodyParseErr } =
+        const { data: response, error: responseParseErr } =
           route.responseType.safeParse(result);
 
-        if (responseBodyParseErr) {
-          res.status(400).json({ error: responseBodyParseErr.errors });
+        if (responseParseErr) {
+          res.status(400).json({ error: responseParseErr.errors });
           return;
         }
 
-        res.json(responseBody);
+        res.status(Number(response.status));
+
+        const contentType = req.accepts(Object.keys(response.content));
+
+        if (contentType === "application/json") {
+          return res.json(response.content["application/json"]);
+        }
+
+        // TODO: Other content types
       }
     );
   }

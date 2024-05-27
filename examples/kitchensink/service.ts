@@ -1,5 +1,12 @@
 export default class Service {
   async hello(params: { name: string }) {
-    return { message: `Hello, ${params.name}!` };
+    return {
+      status: "200" as const,
+      content: {
+        "application/json": {
+          message: `Hello, ${params.name}!`,
+        },
+      },
+    };
   }
 }

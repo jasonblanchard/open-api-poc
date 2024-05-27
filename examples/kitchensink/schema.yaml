@@ -1,0 +1,28 @@
+openapi: 3.0.0
+info:
+  title: Kitchen Sink Service
+  version: 0.0.0
+tags: []
+paths:
+  /hello/{greeting}:
+    get:
+      operationId: hello
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                required:
+                  - message
+components: {}

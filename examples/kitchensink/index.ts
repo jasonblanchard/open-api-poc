@@ -1,6 +1,7 @@
 import express from "express";
 import { registerService } from "./service_gen";
-import { expressMiddleware } from "../../lib/expressMiddleware";
+// import { registerService } from "./gen/types";
+import { expressMiddleware } from "../../packages/express/middleware";
 import Service from "./service";
 
 const app = express();

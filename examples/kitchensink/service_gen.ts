@@ -1,17 +1,19 @@
 import z from "zod";
-import { Method } from "../../lib/expressMiddleware";
 
 export const HelloParams = z.object({
   name: z.coerce.string(),
 });
 
-export const HelloResponseBody = z.object({
-  message: z.coerce.string(),
-});
+export const HelloResponse = z.discriminatedUnion("status", [
+  z.object({
+    status: z.literal("200"),
+    content: z.record(z.object({ message: z.coerce.string() })),
+  }),
+]);
 
 type HelloHandler = (
   params: z.infer<typeof HelloParams>
-) => Promise<z.infer<typeof HelloResponseBody>>;
+) => Promise<z.infer<typeof HelloResponse>>;
 
 export interface APIService {
   hello: HelloHandler;
@@ -22,9 +24,9 @@ export function registerService(service: APIService) {
   return [
     {
       path: "/hello/:name",
-      method: "GET" as Method,
+      method: "get" as const,
       paramType: HelloParams,
-      responseType: HelloResponseBody,
+      responseType: HelloResponse,
       handler: service.hello,
     },
   ];
