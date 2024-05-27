@@ -6,7 +6,7 @@ export type Method = "get" | "post" | "put" | "delete";
 interface Route {
   path: string;
   method: Method;
-  paramType: z.ZodType;
+  paramType: z.ZodType; // TODO: refine these to known parts of shape
   responseType: z.ZodType;
   handler: (params: any) => Promise<any>;
 }
@@ -20,7 +20,7 @@ export function expressMiddleware({
 }) {
   for (const route of routes) {
     app[route.method.toLowerCase() as "get" | "post" | "put" | "delete"](
-      route.path,
+      openAPIPathToExpress(route.path),
       async (req: Request, res: Response) => {
         const { data: params, error: paramParseErr } =
           route.paramType.safeParse(req.params);
@@ -52,4 +52,8 @@ export function expressMiddleware({
       }
     );
   }
+}
+
+function openAPIPathToExpress(path: string) {
+  return path.replace(/{([^}]+)}/g, ":$1");
 }

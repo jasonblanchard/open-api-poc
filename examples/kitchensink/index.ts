@@ -1,6 +1,5 @@
 import express from "express";
-import { registerService } from "./service_gen";
-// import { registerService } from "./gen/types";
+import { registerService } from "./gen/server";
 import { expressMiddleware } from "../../packages/express/middleware";
 import Service from "./service";
 

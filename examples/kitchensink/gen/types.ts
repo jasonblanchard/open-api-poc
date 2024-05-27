@@ -13,19 +13,3 @@ export const hello_ResponseBody = z.object({
     message: z.coerce.string(),
   })),
 });
-
-export interface APIService {
-  hello: (params: z.infer<typeof hello_Parameters>) => Promise<z.infer<typeof hello_ResponseBody>>;
-}
-
-export function registerService(service: APIService) {
-  return [
-    {
-      path: "/hello/{greeting}",
-      method: "get" as const,
-      paramType: hello_Parameters,
-      responseType: hello_ResponseBody,
-      handler: service.hello,
-    },
-  ];
-}
