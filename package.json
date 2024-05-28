@@ -3,10 +3,16 @@
   "version": "1.0.0",
   "main": "index.js",
   "bin": "dist/bin/index.js",
+  "workspaces": [
+    "packages/express",
+    "packages/codegen",
+    "packages/open-api-poc"
+  ],
   "scripts": {
-    "cli": "ts-node bin/index.ts",
-    "build": "tsc",
-    "kitchensink": "ts-node examples/kitchensink/index.ts"
+    "cli": "open-api-poc",
+    "build:all": "npm run --workspaces --if-present build",
+    "build:kitchensink": "open-api-poc build --spec ./examples/kitchensink/schema.yaml --out examples/kitchensink/gen",
+    "start:kitchensink": "ts-node examples/kitchensink/index.ts"
   },
   "keywords": [],
   "author": "",
@@ -22,8 +28,10 @@
     "zod": "^3.23.8"
   },
   "dependencies": {
+    "@open-api-poc/codegen": "^1.0.0",
     "commander": "^12.0.0",
     "js-yaml": "^4.1.0",
+    "open-api-poc": "^1.0.0",
     "ts-morph": "^22.0.0"
   }
 }

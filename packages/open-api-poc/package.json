@@ -1,0 +1,18 @@
+{
+  "name": "open-api-poc",
+  "version": "1.0.0",
+  "main": "index.js",
+  "bin": {
+    "open-api-poc": "dist/index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@open-api-poc/codegen": "^1.0.0"
+  }
+}

@@ -1,6 +1,8 @@
+#!/usr/bin/env node
+
 import { Command } from "commander";
 import fs from "fs";
-import { gen, OpenAPISpec } from "../packages/codegen/gen";
+import { gen, OpenAPISpec } from "@open-api-poc/codegen";
 import yaml from "js-yaml";
 
 const program = new Command();
