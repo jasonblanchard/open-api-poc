@@ -2,7 +2,7 @@
 
 import { Command } from "commander";
 import fs from "fs";
-import { gen, OpenAPISpec } from "@open-api-poc/codegen";
+import { OpenAPISpec } from "@open-api-poc/open-api-validator";
 import yaml from "js-yaml";
 
 const program = new Command();
@@ -17,7 +17,13 @@ program
   .description("Output generated code")
   .option("-s, --spec <file>", "OpenAPI spec file", "")
   .option("-o, --out <dir>", "output directory", "")
-  .action((options) => {
+  .option(
+    "-p, --plugins <items>",
+    "Plugins (can pass multiple as separate flags)",
+    (value, previous) => previous.concat([value]),
+    [] as string[]
+  )
+  .action(async (options) => {
     const specS = fs.readFileSync(options.spec, "utf-8");
 
     const specPojo = yaml.load(specS) as Map<string, any>;
@@ -29,7 +35,14 @@ program
       return;
     }
 
-    gen(validateSpecResponse.data, options.out);
+    const plugins = ["@open-api-poc/gen-types-plugin", ...options.plugins];
+
+    const genPromises = plugins.map(async (pkg) => {
+      const genGn = await import(pkg);
+      genGn.gen(validateSpecResponse.data, options.out);
+    });
+
+    await Promise.all(genPromises);
   });
 
 program.parse();

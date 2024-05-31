@@ -5,13 +5,15 @@
   "bin": "dist/bin/index.js",
   "workspaces": [
     "packages/express",
-    "packages/codegen",
-    "packages/open-api-poc"
+    "packages/open-api-poc",
+    "packages/gen-types-plugin",
+    "packages/gen-server-plugin",
+    "packages/open-api-validator"
   ],
   "scripts": {
     "cli": "open-api-poc",
     "build:all": "npm run --workspaces --if-present build",
-    "build:kitchensink": "open-api-poc build --spec ./examples/kitchensink/schema.yaml --out examples/kitchensink/gen",
+    "build:kitchensink": "open-api-poc build --spec ./examples/kitchensink/schema.yaml --out examples/kitchensink/gen --plugins @open-api-poc/gen-server-plugin",
     "start:kitchensink": "ts-node examples/kitchensink/index.ts"
   },
   "keywords": [],
@@ -29,6 +31,8 @@
   },
   "dependencies": {
     "@open-api-poc/codegen": "^1.0.0",
+    "@open-api-poc/gen-server-plugin": "^1.0.0",
+    "@open-api-poc/gen-types-plugin": "^1.0.0",
     "commander": "^12.0.0",
     "js-yaml": "^4.1.0",
     "open-api-poc": "^1.0.0",

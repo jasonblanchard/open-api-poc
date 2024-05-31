@@ -1,5 +1,5 @@
 {
-  "name": "@open-api-poc/codegen",
+  "name": "@open-api-poc/open-api-validator",
   "version": "1.0.0",
   "main": "dist/index.js",
   "scripts": {

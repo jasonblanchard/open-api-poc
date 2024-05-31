@@ -1,10 +1,7 @@
 {
-  "name": "open-api-poc",
+  "name": "@open-api-poc/gen-types-plugin",
   "version": "1.0.0",
-  "main": "index.js",
-  "bin": {
-    "open-api-poc": "dist/index.js"
-  },
+  "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc"
@@ -13,6 +10,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@open-api-poc/open-api-validator": "^1.0.0"
+    "@open-api-poc/open-api-validator": "^1.0.0",
+    "ts-morph": "^22.0.0"
   }
 }
