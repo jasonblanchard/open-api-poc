@@ -35,7 +35,7 @@ program
       return;
     }
 
-    const plugins = ["@open-api-poc/gen-types-plugin", ...options.plugins];
+    const plugins: string[] = options.plugins;
 
     const genPromises = plugins.map(async (pkg) => {
       const genGn = await import(pkg);

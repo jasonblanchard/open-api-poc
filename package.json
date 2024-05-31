@@ -13,7 +13,7 @@
   "scripts": {
     "cli": "open-api-poc",
     "build:all": "npm run --workspaces --if-present build",
-    "build:kitchensink": "open-api-poc build --spec ./examples/kitchensink/schema.yaml --out examples/kitchensink/gen --plugins @open-api-poc/gen-server-plugin",
+    "build:kitchensink": "open-api-poc build --spec ./examples/kitchensink/schema.yaml --out examples/kitchensink/gen --plugins @open-api-poc/gen-types-plugin --plugins @open-api-poc/gen-server-plugin",
     "start:kitchensink": "ts-node examples/kitchensink/index.ts"
   },
   "keywords": [],
