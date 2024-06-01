@@ -44,3 +44,5 @@ export const OpenAPISpec = z.object({
     )
   ),
 });
+
+export type OpenAPISpec = z.infer<typeof OpenAPISpec>;

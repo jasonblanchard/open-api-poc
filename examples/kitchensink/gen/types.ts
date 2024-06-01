@@ -6,6 +6,9 @@ import z from "zod";
 export const hello_Parameters = z.object({
   name: z.coerce.string(),
 });
+
+export type hello_Parameters = z.infer<typeof hello_Parameters>;
+
 export const hello_ResponseBody = z.discriminatedUnion("status", [
   z.object({
     status: z.literal("200"),
@@ -16,4 +19,6 @@ export const hello_ResponseBody = z.discriminatedUnion("status", [
       })
     ),
   }),
-]);;
+]);
+
+export type hello_ResponseBody = z.infer<typeof hello_ResponseBody>;

@@ -1,8 +1,7 @@
 import { Project, VariableDeclarationKind } from "ts-morph";
-import z from "zod";
 import { OpenAPISpec } from "@open-api-poc/open-api-validator";
 
-export function gen(spec: z.infer<typeof OpenAPISpec>, outdir: string) {
+export function gen(spec: OpenAPISpec, outdir: string) {
   const formatOptions = {
     indentMultiLineObjectLiteralBeginningOnBlankLine: true,
     ensureNewLineAtEndOfFile: true,
@@ -42,6 +41,12 @@ export function gen(spec: z.infer<typeof OpenAPISpec>, outdir: string) {
           ],
         })
         .setIsExported(true);
+
+      sourceFile.addTypeAlias({
+        name: `${operationId}_Parameters`,
+        type: `z.infer<typeof ${operationId}_Parameters>`,
+        isExported: true,
+      });
     }
 
     // responses
@@ -72,11 +77,17 @@ export function gen(spec: z.infer<typeof OpenAPISpec>, outdir: string) {
                         })
                       ),
                     }),
-                  ]);`,
+                  ])`,
                 },
               ],
             })
             .setIsExported(true);
+
+          sourceFile.addTypeAlias({
+            name: `${operationId}_ResponseBody`,
+            type: `z.infer<typeof ${operationId}_ResponseBody>`,
+            isExported: true,
+          });
         }
       }
     }

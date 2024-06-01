@@ -1,8 +1,7 @@
 import { Project } from "ts-morph";
-import z from "zod";
 import { OpenAPISpec } from "@open-api-poc/open-api-validator";
 
-export function gen(spec: z.infer<typeof OpenAPISpec>, outdir: string) {
+export function gen(spec: OpenAPISpec, outdir: string) {
   const formatOptions = {
     indentMultiLineObjectLiteralBeginningOnBlankLine: true,
     ensureNewLineAtEndOfFile: true,
@@ -12,11 +11,6 @@ export function gen(spec: z.infer<typeof OpenAPISpec>, outdir: string) {
 
   const sourceFile = project.createSourceFile(`${outdir}/server.ts`, "", {
     overwrite: true,
-  });
-
-  sourceFile.addImportDeclaration({
-    defaultImport: "z",
-    moduleSpecifier: "zod",
   });
 
   sourceFile.addImportDeclaration({
@@ -30,7 +24,7 @@ export function gen(spec: z.infer<typeof OpenAPISpec>, outdir: string) {
       isExported: true,
       properties: Object.entries(methods).map(([_method, { operationId }]) => ({
         name: operationId,
-        type: `(params: z.infer<typeof types.${operationId}_Parameters>) => Promise<z.infer<typeof types.${operationId}_ResponseBody>>`,
+        type: `(params: types.${operationId}_Parameters) => Promise<types.${operationId}_ResponseBody>`,
       })),
     });
   }
