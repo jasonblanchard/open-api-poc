@@ -4,6 +4,7 @@
 import * as types from "./types";
 
 export interface APIService {
+  healthz: () => Promise<types.healthz_ResponseBody>;
   hello: ({ params }: { params?: types.hello_Parameters }) => Promise<types.hello_ResponseBody>;
   updateHello: ({ params, requestBody }: { params?: types.updateHello_Parameters, requestBody?: types.updateHello_RequestBody }) => Promise<types.updateHello_ResponseBody>;
 }
@@ -11,6 +12,13 @@ export interface APIService {
 export function registerService(service: APIService) {
   return [
     {
+      path: "/healthz",
+      method: "get" as const,
+      paramType: undefined,
+      responseType: types.healthz_ResponseBody,
+      requestBodyType: undefined,
+      handler: service.healthz,
+    }, {
       path: "/hello/{name}",
       method: "get" as const,
       paramType: types.hello_Parameters,
@@ -24,5 +32,6 @@ export function registerService(service: APIService) {
       responseType: types.updateHello_ResponseBody,
       requestBodyType: types.updateHello_RequestBody,
       handler: service.updateHello,
-    },];
+    },
+  ];
 }

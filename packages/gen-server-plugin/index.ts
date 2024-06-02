@@ -18,41 +18,59 @@ export function gen(spec: OpenAPISpec, outdir: string) {
     moduleSpecifier: "./types",
   });
 
-  for (const [path, methods] of Object.entries(spec.paths)) {
-    sourceFile.addInterface({
-      name: "APIService",
-      isExported: true,
-      properties: Object.entries(methods).map(
-        ([_method, { operationId, requestBody }]) => {
-          const typeString = requestBody
-            ? `({params, requestBody}: { params?: types.${operationId}_Parameters, requestBody?: types.${operationId}_RequestBody }) => Promise<types.${operationId}_ResponseBody>`
-            : `({params}: { params?: types.${operationId}_Parameters }) => Promise<types.${operationId}_ResponseBody>`;
+  const apiInterface = sourceFile.addInterface({
+    name: "APIService",
+    isExported: true,
+  });
 
-          return {
+  for (const [path, methods] of Object.entries(spec.paths)) {
+    Object.entries(methods).map(
+      ([_method, { operationId, requestBody, parameters }]) => {
+        let typeString = "";
+
+        // TODO: Fix this set of conditions.
+        if (requestBody && parameters) {
+          typeString = `({params, requestBody}: { params?: types.${operationId}_Parameters, requestBody?: types.${operationId}_RequestBody }) => Promise<types.${operationId}_ResponseBody>`;
+        }
+        if (requestBody && !parameters) {
+          typeString = `({requestBody}: { requestBody?: types.${operationId}_RequestBody }) => Promise<types.${operationId}_ResponseBody>`;
+        }
+        if (!requestBody && parameters) {
+          typeString = `({params}: { params?: types.${operationId}_Parameters }) => Promise<types.${operationId}_ResponseBody>`;
+        }
+        if (!requestBody && !parameters) {
+          typeString = `() => Promise<types.${operationId}_ResponseBody>`;
+        }
+
+        apiInterface.addProperties([
+          {
             name: operationId,
             type: typeString,
-          };
-        }
-      ),
-    });
+          },
+        ]);
+      } // prettier-ignore wtf why is this happening
+    );
   }
 
+  const registerServiceFn = sourceFile.addFunction({
+    name: "registerService",
+    isExported: true,
+    parameters: [{ name: "service", type: "APIService" }],
+  });
+
+  let bodyBuffer = "return [\n";
+
   for (const [path, methods] of Object.entries(spec.paths)) {
-    const registerServiceFn = sourceFile.addFunction({
-      name: "registerService",
-      isExported: true,
-      parameters: [{ name: "service", type: "APIService" }],
-    });
-
-    let bodyBuffer = "return [\n";
-
-    for (const [method, { operationId, requestBody }] of Object.entries(
-      methods
-    )) {
+    for (const [
+      method,
+      { operationId, requestBody, parameters },
+    ] of Object.entries(methods)) {
       bodyBuffer += `{
           path: "${path}",
           method: "${method}" as const,
-          paramType: types.${operationId}_Parameters,
+          paramType: ${
+            parameters ? `types.${operationId}_Parameters` : "undefined"
+          },
           responseType: types.${operationId}_ResponseBody,
           requestBodyType: ${
             requestBody ? `types.${operationId}_RequestBody` : "undefined"
@@ -60,11 +78,10 @@ export function gen(spec: OpenAPISpec, outdir: string) {
           handler: service.${operationId},
         },`;
     }
-
-    bodyBuffer += "];";
-
-    registerServiceFn.setBodyText(bodyBuffer);
   }
+  bodyBuffer += "\n];";
+
+  registerServiceFn.setBodyText(bodyBuffer);
 
   sourceFile.insertText(
     0,

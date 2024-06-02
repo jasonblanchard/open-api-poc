@@ -3,6 +3,20 @@
 
 import z from "zod";
 
+export const healthz_ResponseBody = z.discriminatedUnion("status", [
+  z.object({
+    status: z.literal("200"),
+    content: z.record(
+      z.literal("application/json"),
+      z.object({
+        status: z.coerce.string(),
+      })
+    ),
+  }),
+]);
+
+export type healthz_ResponseBody = z.infer<typeof healthz_ResponseBody>;
+
 export const hello_Parameters = z.object({
   name: z.coerce.string(),
 });

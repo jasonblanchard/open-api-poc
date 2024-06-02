@@ -4,10 +4,15 @@ import z from "zod";
 
 export type Method = "get" | "post" | "put" | "delete";
 
+interface HandlerArgs {
+  params: any;
+  requestBody?: any;
+}
+
 interface Route {
   path: string;
   method: Method;
-  paramType: z.ZodType; // TODO: refine these to known parts of shape
+  paramType?: z.ZodType; // TODO: refine these to known parts of shape
   responseType: z.ZodType;
   requestBodyType?: z.ZodType;
   handler: (arg0: { params: any; requestBody?: any }) => Promise<any>;
@@ -27,15 +32,21 @@ export function expressMiddleware({
     app[route.method.toLowerCase() as "get" | "post" | "put" | "delete"](
       openAPIPathToExpress(route.path),
       async (req: Request, res: Response) => {
-        const { data: params, error: paramParseErr } =
-          route.paramType.safeParse(req.params);
+        const handlerArgs: HandlerArgs = {
+          params: {},
+        };
 
-        if (paramParseErr) {
-          res.status(400).json({ error: paramParseErr.errors });
-          return;
+        if (route.paramType) {
+          const { data: params, error: paramParseErr } =
+            route.paramType.safeParse(req.params);
+
+          if (paramParseErr) {
+            res.status(400).json({ error: paramParseErr.errors });
+            return;
+          }
+
+          handlerArgs.params = params;
         }
-
-        let result;
 
         if (route.requestBodyType) {
           // TODO: Select the type based on content type
@@ -52,10 +63,10 @@ export function expressMiddleware({
             return;
           }
 
-          result = await route.handler({ params, requestBody });
-        } else {
-          result = await route.handler({ params });
+          handlerArgs.requestBody = requestBody;
         }
+
+        const result = await route.handler(handlerArgs);
 
         const { data: response, error: responseParseErr } =
           route.responseType.safeParse(result);

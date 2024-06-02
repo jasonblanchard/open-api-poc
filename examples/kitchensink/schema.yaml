@@ -4,6 +4,21 @@ info:
   version: 0.0.0
 tags: []
 paths:
+  /healthz:
+    get:
+      operationId: healthz
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                required:
+                  - status
   /hello/{name}:
     get:
       operationId: hello

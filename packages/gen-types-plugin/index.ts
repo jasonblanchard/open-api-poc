@@ -24,6 +24,10 @@ export function gen(spec: OpenAPISpec, outdir: string) {
       _method,
       { operationId, parameters, requestBody },
     ] of Object.entries(methods)) {
+      if (!parameters || parameters.length === 0) {
+        continue;
+      }
+
       let paramBuffer = "";
 
       parameters?.forEach((param) => {

@@ -1,6 +1,17 @@
 import { updateHello_RequestBody } from "./gen/types";
 
 export default class Service {
+  async healthz() {
+    return {
+      status: "200" as const,
+      content: {
+        "application/json": {
+          status: "OK",
+        },
+      },
+    };
+  }
+
   async hello({ params }: { params?: { name: string } }) {
     return {
       status: "200" as const,
