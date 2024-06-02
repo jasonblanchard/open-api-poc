@@ -66,8 +66,13 @@ paths:
               schema:
                 type: object
                 properties:
-                  echo:
-                    type: string
+                  envelope:
+                    type: object
+                    properties:
+                      echo:
+                        type: string
+                    required:
+                      - echo
                 required:
-                  - echo
+                  - envelope
 components: {}

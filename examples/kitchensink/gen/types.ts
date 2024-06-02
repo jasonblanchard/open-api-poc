@@ -60,7 +60,9 @@ export const updateHello_ResponseBody = z.discriminatedUnion("status", [
     content: z.record(
       z.literal("application/json"),
       z.object({
-        echo: z.coerce.string(),
+        envelope: z.object({
+          echo: z.coerce.string(),
+        }),
       })
     ),
   }),

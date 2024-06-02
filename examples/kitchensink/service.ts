@@ -34,7 +34,9 @@ export default class Service {
       status: "200" as const,
       content: {
         "application/json": {
-          echo: requestBody?.content["application/json"]?.greeting || "",
+          envelope: {
+            echo: requestBody?.content["application/json"]?.greeting || "",
+          },
         },
       },
     };

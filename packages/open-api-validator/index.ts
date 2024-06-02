@@ -1,5 +1,19 @@
 import z from "zod";
 
+// Allow Schema to recursively reference itself in properties
+const bastSchema = z.object({
+  $ref: z.string().optional(),
+  type: z.string().optional(), // Actually a set of known literals. Can probably do a discriminated union instead of making the types optional
+});
+
+export type Schema = z.infer<typeof bastSchema> & {
+  properties?: Record<string, Schema>;
+};
+
+const Schema: z.ZodType<Schema> = bastSchema.extend({
+  properties: z.lazy(() => z.record(Schema).optional()),
+});
+
 export const OpenAPISpec = z.object({
   openapi: z.string(),
   info: z.object({
@@ -28,14 +42,7 @@ export const OpenAPISpec = z.object({
             description: z.string().optional(),
             content: z.record(
               z.object({
-                schema: z.object({
-                  type: z.string(),
-                  properties: z.record(
-                    z.object({
-                      type: z.string(),
-                    })
-                  ),
-                }),
+                schema: Schema,
               })
             ),
           })
@@ -45,14 +52,7 @@ export const OpenAPISpec = z.object({
             description: z.string().optional(),
             content: z.record(
               z.object({
-                schema: z.object({
-                  type: z.string(),
-                  properties: z.record(
-                    z.object({
-                      type: z.string(),
-                    })
-                  ),
-                }),
+                schema: Schema,
               })
             ),
           })

@@ -1,5 +1,5 @@
 import { Project, VariableDeclarationKind } from "ts-morph";
-import { OpenAPISpec } from "@open-api-poc/open-api-validator";
+import { OpenAPISpec, Schema } from "@open-api-poc/open-api-validator";
 
 export function gen(spec: OpenAPISpec, outdir: string) {
   const formatOptions = {
@@ -32,6 +32,7 @@ export function gen(spec: OpenAPISpec, outdir: string) {
 
       parameters?.forEach((param) => {
         // TODO: Recursively build up the parameter types from  param.schema
+        // TODO: Respect "required"
         paramBuffer = paramBuffer + `\n${param.name}: z.coerce.string(),`;
       });
 
@@ -57,11 +58,7 @@ export function gen(spec: OpenAPISpec, outdir: string) {
         for (const [contentType, { schema }] of Object.entries(
           requestBody.content
         )) {
-          // TODO: Recursively build up the parameter types
-          let contentBuffer = "";
-          for (const [prop, { type }] of Object.entries(schema.properties)) {
-            contentBuffer = contentBuffer + `${prop}: z.coerce.${type}(),`;
-          }
+          const contentBuffer = schemaToTypeString({ schema });
 
           sourceFile
             .addVariableStatement({
@@ -72,9 +69,7 @@ export function gen(spec: OpenAPISpec, outdir: string) {
                   initializer: `z.object({
                   content: z.record(
                     z.literal("${contentType}"),
-                    z.object({
-                      ${contentBuffer}
-                    })
+                    ${contentBuffer}
                   )
                 })`,
                 },
@@ -97,11 +92,7 @@ export function gen(spec: OpenAPISpec, outdir: string) {
     )) {
       for (const [status, { content }] of Object.entries(responses)) {
         for (const [contentType, { schema }] of Object.entries(content)) {
-          let contentBuffer = "";
-          for (const [prop, { type }] of Object.entries(schema.properties)) {
-            // TODO: Recursively build up the parameter types from  param.schema
-            contentBuffer = contentBuffer + `${prop}: z.coerce.${type}(),`;
-          }
+          const contentBuffer = schemaToTypeString({ schema });
 
           sourceFile
             .addVariableStatement({
@@ -114,9 +105,7 @@ export function gen(spec: OpenAPISpec, outdir: string) {
                       status: z.literal("${status}"),
                       content: z.record(
                         z.literal("${contentType}"),
-                        z.object({
-                          ${contentBuffer}
-                        })
+                        ${contentBuffer}
                       ),
                     }),
                   ])`,
@@ -145,4 +134,48 @@ export function gen(spec: OpenAPISpec, outdir: string) {
 
   sourceFile.formatText(formatOptions);
   sourceFile.saveSync();
+}
+
+function walkSchemaProp({
+  prop,
+  schema,
+}: {
+  prop: string;
+  schema: Schema;
+}): string {
+  let buffer = "";
+  if (schema.type === "object") {
+    buffer = `${prop}: z.object({`;
+    for (const [innerProp, propSchema] of Object.entries(
+      schema?.properties || {}
+    )) {
+      buffer += walkSchemaProp({ prop: innerProp, schema: propSchema });
+    }
+    buffer += "\n}),";
+    return buffer;
+  }
+
+  // TODO: Write a proper transform function
+  // TODO: Take "required" into account
+  buffer += `${prop}: z.coerce.${schema.type}(),`;
+
+  return buffer;
+}
+
+function schemaToTypeString({ schema }: { schema: Schema }): string {
+  let buffer = "z.object({\n";
+  for (const [prop, propSchema] of Object.entries(schema?.properties || {})) {
+    if (schema.properties) {
+      buffer += walkSchemaProp({ prop, schema: propSchema });
+      continue;
+    }
+
+    // TODO: Write a proper transform function
+    // TODO: Take "required" into account
+    buffer += `z.coerce.${schema.type}()`;
+  }
+
+  buffer += "\n})";
+
+  return buffer;
 }
