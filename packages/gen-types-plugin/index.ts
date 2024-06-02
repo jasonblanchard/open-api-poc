@@ -20,9 +20,10 @@ export function gen(spec: OpenAPISpec, outdir: string) {
 
   // parameters
   for (const [path, methods] of Object.entries(spec.paths)) {
-    for (const [_method, { operationId, parameters }] of Object.entries(
-      methods
-    )) {
+    for (const [
+      _method,
+      { operationId, parameters, requestBody },
+    ] of Object.entries(methods)) {
       let paramBuffer = "";
 
       parameters?.forEach((param) => {
@@ -47,6 +48,43 @@ export function gen(spec: OpenAPISpec, outdir: string) {
         type: `z.infer<typeof ${operationId}_Parameters>`,
         isExported: true,
       });
+
+      if (requestBody) {
+        for (const [contentType, { schema }] of Object.entries(
+          requestBody.content
+        )) {
+          // TODO: Recursively build up the parameter types
+          let contentBuffer = "";
+          for (const [prop, { type }] of Object.entries(schema.properties)) {
+            contentBuffer = contentBuffer + `${prop}: z.coerce.${type}(),`;
+          }
+
+          sourceFile
+            .addVariableStatement({
+              declarationKind: VariableDeclarationKind.Const,
+              declarations: [
+                {
+                  name: `${operationId}_RequestBody`,
+                  initializer: `z.object({
+                  content: z.record(
+                    z.literal("${contentType}"),
+                    z.object({
+                      ${contentBuffer}
+                    })
+                  )
+                })`,
+                },
+              ],
+            })
+            .setIsExported(true);
+
+          sourceFile.addTypeAlias({
+            name: `${operationId}_RequestBody`,
+            type: `z.infer<typeof ${operationId}_RequestBody>`,
+            isExported: true,
+          });
+        }
+      }
     }
 
     // responses

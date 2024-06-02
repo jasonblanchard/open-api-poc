@@ -1,4 +1,5 @@
 import { Express, Request, Response } from "express";
+import bodyParser from "body-parser";
 import z from "zod";
 
 export type Method = "get" | "post" | "put" | "delete";
@@ -8,7 +9,8 @@ interface Route {
   method: Method;
   paramType: z.ZodType; // TODO: refine these to known parts of shape
   responseType: z.ZodType;
-  handler: (params: any) => Promise<any>;
+  requestBodyType?: z.ZodType;
+  handler: (arg0: { params: any; requestBody?: any }) => Promise<any>;
 }
 
 export function expressMiddleware({
@@ -18,6 +20,9 @@ export function expressMiddleware({
   app: Express;
   routes: Route[];
 }) {
+  // TODO: Should the caller be responsible for setting up middleware?
+  app.use(bodyParser.json());
+
   for (const route of routes) {
     app[route.method.toLowerCase() as "get" | "post" | "put" | "delete"](
       openAPIPathToExpress(route.path),
@@ -30,7 +35,27 @@ export function expressMiddleware({
           return;
         }
 
-        const result = await route.handler(params);
+        let result;
+
+        if (route.requestBodyType) {
+          // TODO: Select the type based on content type
+
+          const { data: requestBody, error: requestBodyParseErr } =
+            route.requestBodyType.safeParse({
+              content: {
+                "application/json": req.body,
+              },
+            });
+
+          if (requestBodyParseErr) {
+            res.status(400).json({ error: requestBodyParseErr.errors });
+            return;
+          }
+
+          result = await route.handler({ params, requestBody });
+        } else {
+          result = await route.handler({ params });
+        }
 
         const { data: response, error: responseParseErr } =
           route.responseType.safeParse(result);

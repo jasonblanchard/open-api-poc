@@ -22,10 +22,18 @@ export function gen(spec: OpenAPISpec, outdir: string) {
     sourceFile.addInterface({
       name: "APIService",
       isExported: true,
-      properties: Object.entries(methods).map(([_method, { operationId }]) => ({
-        name: operationId,
-        type: `(params: types.${operationId}_Parameters) => Promise<types.${operationId}_ResponseBody>`,
-      })),
+      properties: Object.entries(methods).map(
+        ([_method, { operationId, requestBody }]) => {
+          const typeString = requestBody
+            ? `({params, requestBody}: { params?: types.${operationId}_Parameters, requestBody?: types.${operationId}_RequestBody }) => Promise<types.${operationId}_ResponseBody>`
+            : `({params}: { params?: types.${operationId}_Parameters }) => Promise<types.${operationId}_ResponseBody>`;
+
+          return {
+            name: operationId,
+            type: typeString,
+          };
+        }
+      ),
     });
   }
 
@@ -36,19 +44,26 @@ export function gen(spec: OpenAPISpec, outdir: string) {
       parameters: [{ name: "service", type: "APIService" }],
     });
 
-    for (const [method, { operationId }] of Object.entries(methods)) {
-      registerServiceFn.setBodyText(
-        `return [
-          {
+    let bodyBuffer = "return [\n";
+
+    for (const [method, { operationId, requestBody }] of Object.entries(
+      methods
+    )) {
+      bodyBuffer += `{
           path: "${path}",
           method: "${method}" as const,
           paramType: types.${operationId}_Parameters,
           responseType: types.${operationId}_ResponseBody,
+          requestBodyType: ${
+            requestBody ? `types.${operationId}_RequestBody` : "undefined"
+          },
           handler: service.${operationId},
-        },
-      ];`
-      );
+        },`;
     }
+
+    bodyBuffer += "];";
+
+    registerServiceFn.setBodyText(bodyBuffer);
   }
 
   sourceFile.insertText(

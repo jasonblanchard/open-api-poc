@@ -4,7 +4,8 @@
 import * as types from "./types";
 
 export interface APIService {
-  hello: (params: types.hello_Parameters) => Promise<types.hello_ResponseBody>;
+  hello: ({ params }: { params?: types.hello_Parameters }) => Promise<types.hello_ResponseBody>;
+  updateHello: ({ params, requestBody }: { params?: types.updateHello_Parameters, requestBody?: types.updateHello_RequestBody }) => Promise<types.updateHello_ResponseBody>;
 }
 
 export function registerService(service: APIService) {
@@ -14,7 +15,14 @@ export function registerService(service: APIService) {
       method: "get" as const,
       paramType: types.hello_Parameters,
       responseType: types.hello_ResponseBody,
+      requestBodyType: undefined,
       handler: service.hello,
-    },
-  ];
+    }, {
+      path: "/hello/{name}",
+      method: "post" as const,
+      paramType: types.updateHello_Parameters,
+      responseType: types.updateHello_ResponseBody,
+      requestBodyType: types.updateHello_RequestBody,
+      handler: service.updateHello,
+    },];
 }

@@ -25,4 +25,34 @@ paths:
                     type: string
                 required:
                   - message
+    post:
+      operationId: updateHello
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                greeting:
+                  type: string
+              required:
+                - greeting
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  echo:
+                    type: string
+                required:
+                  - echo
 components: {}

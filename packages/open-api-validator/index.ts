@@ -23,6 +23,23 @@ export const OpenAPISpec = z.object({
             })
           )
           .optional(),
+        requestBody: z
+          .object({
+            description: z.string().optional(),
+            content: z.record(
+              z.object({
+                schema: z.object({
+                  type: z.string(),
+                  properties: z.record(
+                    z.object({
+                      type: z.string(),
+                    })
+                  ),
+                }),
+              })
+            ),
+          })
+          .optional(),
         responses: z.record(
           z.object({
             description: z.string().optional(),
