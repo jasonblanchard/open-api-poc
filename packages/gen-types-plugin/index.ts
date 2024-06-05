@@ -149,6 +149,8 @@ function walkSchemaProp({
 
   // TODO: Array
   // TODO: Ref
+  // TODO: oneOf, anyOf, allOf, not
+  // TODO: enum
 
   if (schema.type === "object") {
     buffer = `${prop}: z.object({`;
