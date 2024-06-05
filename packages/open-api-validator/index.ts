@@ -4,6 +4,7 @@ import z from "zod";
 const bastSchema = z.object({
   $ref: z.string().optional(),
   type: z.string().optional(), // Actually a set of known literals. Can probably do a discriminated union instead of making the types optional
+  required: z.array(z.string()).optional(),
 });
 
 export type Schema = z.infer<typeof bastSchema> & {

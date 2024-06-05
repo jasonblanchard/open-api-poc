@@ -139,25 +139,37 @@ export function gen(spec: OpenAPISpec, outdir: string) {
 function walkSchemaProp({
   prop,
   schema,
+  required,
 }: {
   prop: string;
   schema: Schema;
+  required?: string[];
 }): string {
   let buffer = "";
+
+  // TODO: Array
+  // TODO: Ref
+
   if (schema.type === "object") {
     buffer = `${prop}: z.object({`;
     for (const [innerProp, propSchema] of Object.entries(
       schema?.properties || {}
     )) {
-      buffer += walkSchemaProp({ prop: innerProp, schema: propSchema });
+      buffer += walkSchemaProp({
+        prop: innerProp,
+        schema: propSchema,
+        required: schema.required,
+      });
     }
     buffer += "\n}),";
     return buffer;
   }
 
-  // TODO: Write a proper transform function
-  // TODO: Take "required" into account
-  buffer += `${prop}: z.coerce.${schema.type}(),`;
+  buffer +=
+    `${prop}: ${scalarToZodType({
+      type: schema.type || "",
+      required: required?.includes(prop) || false,
+    })}` + ",";
 
   return buffer;
 }
@@ -166,16 +178,44 @@ function schemaToTypeString({ schema }: { schema: Schema }): string {
   let buffer = "z.object({\n";
   for (const [prop, propSchema] of Object.entries(schema?.properties || {})) {
     if (schema.properties) {
-      buffer += walkSchemaProp({ prop, schema: propSchema });
+      buffer += walkSchemaProp({
+        prop,
+        schema: propSchema,
+        required: schema.required,
+      });
       continue;
     }
 
-    // TODO: Write a proper transform function
-    // TODO: Take "required" into account
-    buffer += `z.coerce.${schema.type}()`;
+    buffer += scalarToZodType({
+      type: propSchema.type || "",
+      required: propSchema.required?.includes(prop) || false,
+    });
   }
 
   buffer += "\n})";
 
   return buffer;
+}
+
+function scalarToZodType({
+  type,
+  required,
+}: {
+  type: string;
+  required: boolean;
+}): string {
+  switch (type) {
+    case "string":
+      return `z.coerce.string()${required ? "" : ".optional()"}`;
+    case "number":
+      return `z.coerce.number()${required ? "" : ".optional()"}`;
+    case "integer":
+      return `z.coerce.number()${required ? "" : ".optional()"}`;
+    case "boolean":
+      return `z.coerce.boolean()${required ? "" : ".optional()"}`;
+    case "null":
+      return "z.null()";
+    default:
+      return "unknown()";
+  }
 }
